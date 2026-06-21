@@ -1,0 +1,58 @@
+[project]
+name = "magi"
+version = "0.1.0"
+description = "Three-agent deliberation system, after the MAGI supercomputers from Neon Genesis Evangelion."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Niall Cartwright", email = "Carniall@googlemail.com" }]
+requires-python = ">=3.11"
+keywords = ["llm", "agents", "cli", "evangelion", "magi", "openai", "anthropic", "ollama"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "openai>=1.40",
+    "rich>=13.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/Nairu/magi"
+Repository = "https://github.com/Nairu/magi"
+Issues = "https://github.com/Nairu/magi/issues"
+
+[project.scripts]
+magi = "magi.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/magi"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # rich text strings frequently exceed line length
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
