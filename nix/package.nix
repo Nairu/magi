@@ -26,6 +26,8 @@ python3Packages.buildPythonApplication {
 
   pythonImportsCheck = [ "magi" "magi.cli" "magi.config" "magi.deliberation" ];
 
+  passthru.homeManagerModule = ./module.nix;
+
   meta = with lib; {
     description = "Three-agent MAGI deliberation system, OpenAI-compatible across providers";
     homepage = "https://github.com/Nairu/magi";

@@ -8,19 +8,16 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      # Overlay that exposes `magi` on top of nixpkgs.
-      # Add this to your system's overlays to pick up the package directly.
+      # Overlay that exposes `magi` on top of nixpkgs. The package carries
+      # its own home-manager module via `passthru.homeManagerModule`, so
+      # adding this overlay is enough to get both the binary and the
+      # module under `pkgs.magi.*`.
       overlay = final: prev: {
         magi = final.callPackage ./nix/package.nix { };
       };
     in
     {
       overlays.default = overlay;
-
-      # Home-manager module. Import with:
-      #   imports = [ inputs.magi.homeManagerModules.default ];
-      homeManagerModules.default = import ./nix/module.nix;
-      homeManagerModules.magi = self.homeManagerModules.default;
     }
     //
     flake-utils.lib.eachDefaultSystem (system:
