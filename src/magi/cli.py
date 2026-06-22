@@ -12,7 +12,7 @@ from rich.console import Console
 from . import __version__
 from .config import build_agents
 from .deliberation import deliberate, tally
-from .render import AMBER, DIM, GOLD, render
+from .render import AMBER, DIM, GOLD, render, render_live, render_verdict
 
 SAMPLE_CONFIG_TOML = """\
 # MAGI configuration. Drop at ~/.config/magi/config.toml.
@@ -152,25 +152,22 @@ def main(argv: list[str] | None = None) -> int:
 
     query = " ".join(args.query)
 
-    async def _run():
-        return await deliberate(agents, query)
-
-    if args.no_spinner or args.as_json:
-        votes = asyncio.run(_run())
-    else:
-        with console.status(
-            f"[{AMBER}]MAGI :: TRIPLEX DELIBERATION IN PROGRESS...[/]",
-            spinner="dots",
-            spinner_style=AMBER,
-        ):
-            votes = asyncio.run(_run())
-
-    outcome = tally(votes)
-
     if args.as_json:
+        votes = asyncio.run(deliberate(agents, query))
+        outcome = tally(votes)
         print(json.dumps({"query": query, **outcome.to_dict()}, indent=2))
-    else:
+        return 0
+
+    if args.no_spinner:
+        votes = asyncio.run(deliberate(agents, query))
+        outcome = tally(votes)
         render(query, outcome, console)
+        return 0
+
+    # Default: live render — panels light up as votes arrive.
+    votes = asyncio.run(render_live(agents, query, console))
+    outcome = tally(votes)
+    render_verdict(outcome, console)
     return 0
 
 
