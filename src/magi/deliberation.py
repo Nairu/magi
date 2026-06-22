@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -129,6 +130,29 @@ async def deliberate_one(agent: ResolvedAgent, query: str) -> AgentVote:
 async def deliberate(agents: list[ResolvedAgent], query: str) -> list[AgentVote]:
     """Fan the query out to all agents in parallel."""
     return await asyncio.gather(*(deliberate_one(a, query) for a in agents))
+
+
+async def deliberate_streaming(
+    agents: list[ResolvedAgent],
+    query: str,
+    on_vote: Callable[[AgentVote], None] | None = None,
+) -> list[AgentVote]:
+    """Like :func:`deliberate`, but invoke ``on_vote`` as each vote arrives.
+
+    The callback runs synchronously on the event loop thread, so it must
+    be fast and non-blocking — typically just a state-dict update plus a
+    ``Live.update()`` call.
+
+    Returned votes preserve the original ``agents`` order regardless of
+    completion order.
+    """
+    async def _one(agent: ResolvedAgent) -> AgentVote:
+        vote = await deliberate_one(agent, query)
+        if on_vote is not None:
+            on_vote(vote)
+        return vote
+
+    return await asyncio.gather(*(_one(a) for a in agents))
 
 
 def tally(votes: list[AgentVote]) -> Outcome:
