@@ -167,8 +167,11 @@ magi --json "your question" | jq '.outcome'
 The flake exposes:
 
 - `packages.<system>.magi` — the runnable package
-- `overlays.default` — adds `magi` to nixpkgs
-- `homeManagerModules.default` — a typed home-manager module
+- `overlays.default` — adds `magi` to nixpkgs and attaches the
+  home-manager module as `pkgs.magi.homeManagerModule`
+
+There is no separate `homeManagerModules` output: adding the overlay is
+enough to pick up both the binary and the module.
 
 ### Add to a flake-based system
 
@@ -181,18 +184,22 @@ The flake exposes:
     magi.url = "github:Nairu/magi";
   };
 
-  outputs = { self, nixpkgs, home-manager, magi, ... }: {
-    homeConfigurations.you = home-manager.lib.homeManagerConfiguration {
+  outputs = { self, nixpkgs, home-manager, magi, ... }:
+    let
       pkgs = import nixpkgs {
         system = "x86_64-linux";
         overlays = [ magi.overlays.default ];
       };
-      modules = [
-        magi.homeManagerModules.default
-        ./home.nix
-      ];
+    in
+    {
+      homeConfigurations.you = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          pkgs.magi.homeManagerModule
+          ./home.nix
+        ];
+      };
     };
-  };
 }
 ```
 
